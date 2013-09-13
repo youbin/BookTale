@@ -19,4 +19,4 @@
 /log/**/*
 /tmp/**/*
 /db/schema.rb
-/*.png
+/public/**/*.png
