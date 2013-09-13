@@ -16,6 +16,7 @@
 /tmp
 
 # Added by YES
-log/**/*
-tmp/**/*
-db/schema.rb
+/log/**/*
+/tmp/**/*
+/db/schema.rb
+/*.png
