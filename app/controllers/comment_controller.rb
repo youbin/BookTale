@@ -45,6 +45,13 @@ p @comments
     end
   end
 
+  def delete
+    Log.debug(self, params, 'begin')
+    delete_return = Comment.delete(params['b_id'], params['r_id'], params['cm_id'])
+    render json: delete_return, status: :ok
+    Log.debug(self, params, 'end')
+  end
+
   private
     def set_comment
       b_id = params[:b_id]

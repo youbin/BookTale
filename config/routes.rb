@@ -6,10 +6,12 @@ Project::Application.routes.draw do
   # get function
   get "users" => 'users#index'
   get "users/:id" => 'users#bookshelf'
-  get "users/:id/user" => 'users#userview'
+  get "users/:id/user/:visit" => 'users#userview'
   get "users/:id/sub" => 'users#subview'
   get "users/:id/wish" => 'users#wishview'
   get "users/:id/follow" => 'users#follow_list'
+
+  get "users/test" => 'users#test'
 
   get 'get_user/:u_nickName'	=> 'users#get'
 
@@ -22,6 +24,8 @@ Project::Application.routes.draw do
   post "users/unwish" => 'users#unwish'
   post "users/cadd" => 'users#add_category'
   post "users/cremove" => 'users#remove_category'
+  post 'users/sign_in'	=> 'users#sign_in'
+  post 'users/facebook'	=> 'users#facebook_login'
 
   # categoires_controller
   # get function
@@ -33,6 +37,7 @@ Project::Application.routes.draw do
   post "categories/edit" => 'categories#edit'
   post "categories/add" => 'categories#add_book'
   post "categories/remove" => 'categories#remove_book'
+  post "categories/move" => 'categories#move_book'
 
   # books_controller
   # get function
@@ -40,7 +45,6 @@ Project::Application.routes.draw do
   get "books/new" => 'books#new'
 #  get "books/:id" => 'books#show'
   get "books/:id" => 'books#detail'
-  get "books/:isbn" => 'books#isbnInformation'
   get "books/:id/starNum/:score" => 'books#starNum'
   get "books/:id/review/:review_id" => 'books#review'
   get "books/:id/unreview/:unreview_id" => 'books#unreview'
@@ -52,6 +56,7 @@ Project::Application.routes.draw do
   post "books/attach" => 'books#attach_book'
   post "books/edit" => 'books#edit'
   post "books/review" => 'books#review'
+  post "books/average" => 'books#average_star'
   post "books/:id/unreview" => 'books#unreview'
 
 
@@ -60,6 +65,7 @@ Project::Application.routes.draw do
   get	'comment/:b_id/:r_id/:cm_id'		=> 'comment#get'
   get	'comment/show/:b_id/:r_id/:cm_id'	=> 'comment#show'
   get	'comment/:b_id/:r_id/'			=> 'comment#index'
+  get	'comment/delete/:b_id/:r_id/:cm_id'	=> 'comment#delete'
 
   # post function
   post	"comment"				=> 'comment#create'
@@ -80,6 +86,7 @@ Project::Application.routes.draw do
   get 'feed/show/:f_id'				=> 'feed#show'
   get 'feed'					=> 'feed#index'
   get 'recent_book'				=> 'feed#getRecentTopBookFeeds'
+  get 'recent_review'				=> 'feed#getRecentTopReviewFeeds'
 
   # ownnewsfeed_controller
   # get function
@@ -95,9 +102,10 @@ Project::Application.routes.draw do
 
   # displaynewsfeed_controller
   # get function
-  get 'displaynewsfeed/:id'			=> 'displaynewsfeed#get'
-  get 'displaynewsfeed/show/:id'		=> 'displaynewsfeed#show'
+  get 'displaynewsfeed/:id/:last_f_id'		=> 'displaynewsfeed#get'
   get 'displaynewsfeed'				=> 'displaynewsfeed#index'
+  get 'displaynewsfeed_more/:id/:last_f_id'	=> 'displaynewsfeed#more'
+  get 'fake_displaynewsfeed'			=> 'displaynewsfeed#make_fake_feeds'
 
 
   # The priority is based upon order of creation: first created -> highest priority.

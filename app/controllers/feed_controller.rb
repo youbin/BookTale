@@ -22,7 +22,13 @@ class FeedController < ApplicationController
   def getRecentTopBookFeeds
     book_activities = BookActivity.getBookActivities
     return_book_activities = Array.new
+    count_of_books = 0
     book_activities.each do |book_activity|
+      next if BookDetail.where(:_id => book_activity[0]).exists? == false
+      if (count_of_books >= 10)
+        break
+      end
+      count_of_books = count_of_books + 1
       book_detail_info = BookDetail.find(book_activity[0])
       book_info = Book.find(book_activity[0])
       book_info['b_category'] = book_detail_info['b_category']
@@ -36,6 +42,28 @@ class FeedController < ApplicationController
     render json: return_book_activities, status: :ok
   end
 
+  def getRecentTopReviewFeeds
+    review_activities = ReviewActivity.getReviewActivities
+    return_review_activities = Hash.new
+    review_activities_array = Array.new
+    user_hash = Hash.new
+    count_of_reviews = 0
+    review_activities.each do |review_activity|
+      if (count_of_reviews >= 10)
+        break
+      end
+      count_of_reviews = count_of_reviews + 1
+      review_detail_info = Review.hgetall review_activity[0]
+      review_activities_array << review_detail_info
+      if user_hash[review_detail_info['u_id']] == nil and User.where(:id => review_detail_info['u_id']).exists?
+        user_hash[review_detail_info['u_id']] = User.find(review_detail_info['u_id'])
+      end
+    end
+    return_review_activities['reviews'] = review_activities_array
+    return_review_activities['users'] = user_hash
+    render json: return_review_activities, status: :ok
+  end
+
   def createFeedWithHash hash
     Log.debug(self, hash, 'begin')
     feed = Feed.new
@@ -46,6 +74,14 @@ class FeedController < ApplicationController
     end
     type = hash['type']
     if type == 'review' or type == 'comment' or type == 'enroll'
+      BookActivity.setBookActivity(feed_hash['b_id'], feed_hash['f_time'].to_i)
+      if type == 'review'
+        review = Review.find(feed_hash['b_id'], feed_hash['r_id'])
+        review_detail = review.hgetReview
+        if review_detail[1] != ''
+          ReviewActivity.setReviewActivity(feed_hash['b_id'], feed_hash['r_id'], feed_hash['f_time'].to_i)
+        end
+      end
       book = BooknewsfeedController.new
       book.setBookNewsfeed feed_hash
       display = DisplaynewsfeedController.new

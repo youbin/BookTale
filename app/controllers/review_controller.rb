@@ -25,12 +25,42 @@ class ReviewController < ApplicationController
     review.saddToCm_id(cm_id)
   end
 
+  def modify_review_count b_id, point
+    book = Book.find(b_id)
+    reviewCount = book.b_reviewCount
+    if (reviewCount == nil)
+      reviewCount = 0
+    end
+    reviewCount = reviewCount + point
+    book.update(:b_reviewCount => reviewCount)
+  end
+
+  def increase_review_count b_id
+    modify_review_count(b_id, 1)
+  end
+
+  def decrease_review_count b_id
+    modify_review_count(b_id, -1)
+  end
+
   def update
     Log.debug(self, params, 'begin')
-    review = Review.find(params[:b_id], params[:r_id])
+    b_id = params[:b_id]
+    review = Review.find(b_id, params[:r_id])
+    review_detail = review.hgetReview
     params['r_time'] = Time.now
+    if params[:r_review] != ''
+      ReviewActivity.setReviewActivity(b_id, params[:r_id], params['r_time'].to_i)
+    end
+    if (params[:r_review] == '' and review_detail[Review.fields.index('r_review')] != '')
+      decrease_review_count(b_id)
+    elsif (params[:r_review] != '' and review_detail[Review.fields.index('r_review')] == '')
+      increase_review_count(b_id)
+    end
     hash_args = CommonMethods.makeArgs(params, *Review.fields)
     review_hash = review.hmset(*hash_args)
+    booksController = BooksController.new
+    booksController.average_star(b_id, review_detail[Review.fields.index('r_starPoint')].to_f, params[:r_starPoint].to_f)
     render json: nil ,status: :ok
     Log.debug(self, params, 'end')
   end
@@ -48,7 +78,11 @@ class ReviewController < ApplicationController
     review_hash["b_id"] = b_id
     review_hash["type"] = 'review'
     review_hash["f_time"] = review_hash["r_time"]
+    if (params[:r_review] != '')
+      increase_review_count(b_id)
+    end
     book = BooksController.new
+    book.average_star(b_id, -1.0, params['r_starPoint'].to_f)
     book.review b_id, review_hash["r_id"]
     feed = FeedController.new
     feed.createFeedWithHash review_hash
